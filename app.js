@@ -2,7 +2,7 @@
 const CONFIG={
  serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",
  discord:"https://discord.gg/vHGj4E9KDZ",support:"neowawww@gmail.com",
- gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
+ gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"qr-code.png",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
  ADMIN_USERNAME:"KnownAsNeo",
  ADMIN_EMAIL:"knownasneo@atbp.fun",
  SUPABASE_URL:"https://axgjlpmunsvwlonbbqdz.supabase.co",
