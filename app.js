@@ -1,8 +1,45 @@
 /* ===== EDIT ME: placeholders ===== */
 const CONFIG={
  serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",discord:"https://discord.gg/vHGj4E9KDZ",support:"neowawww@gmail.com",
- gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
- refundPolicy:"NO REFUNDS!.",
+gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
+ refundPolicy:"# Seraphyx SMP Store Refund Policy
+
+**Effective date:** October 4, 2026
+
+This policy covers digital purchases from the Seraphyx SMP Store, including coins, monthly ranks, crate keys, and the Battlepass. Store credits have no cash value and cannot be exchanged for cash except where a refund is approved or required by applicable law. Nothing in this policy limits your rights under Philippine consumer protection laws.
+
+## When you can request a refund
+
+Contact Seraphyx support if:
+
+- You were charged more than once or for the wrong amount.
+- Your GCash payment was confirmed, but your purchase was not credited.
+- A purchase was not delivered, is defective, or differs significantly from its store description.
+- A rank or other time-limited purchase becomes unavailable because Seraphyx permanently closes before its advertised access period ends.
+
+We will investigate and, where possible, correct the issue or deliver the missing purchase. If we cannot reasonably resolve it, we will offer an appropriate refund or replacement.
+
+## Purchases that were delivered
+
+A change of mind does not normally qualify for a refund after a correctly described purchase has been delivered. If you entered the wrong Minecraft username, contact us as soon as possible. We will try to help if the purchase has not yet been claimed or used.
+
+Purchases affected by account restrictions or rule violations will be reviewed individually. This does not limit any rights you may have under applicable law.
+
+## How to request a refund
+
+Contact **[support email or Discord ticket link]** and include:
+
+- Your order number
+- Your Minecraft username
+- The purchase date and amount
+- Your GCash payment reference, if applicable
+- A short description of the issue
+
+Never send your GCash MPIN, password, or one-time passcode.
+
+We aim to review requests within **5 business days**. Approved refunds will normally be sent in Philippine pesos to the original payment method within **10 business days**, though GCash or another payment provider may take additional time. If the original method cannot receive the refund, we will contact you to agree on another suitable method.
+
+Please contact us promptly when something goes wrong so we can locate the order and help.",
  ADMIN_USERNAME:"KnownAsNeo",ADMIN_EMAIL:"knownasneo@atbp.fun" /* behind-the-scenes login email for the staff account; change to one you control if Supabase rejects it */,
  SUPABASE_URL:"https://axgjlpmunsvwlonbbqdz.supabase.co",SUPABASE_ANON_KEY:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4Z2pscG11bnN2d2xvbmJicWR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjA4NDMsImV4cCI6MjEwNjY5Njg0M30.2cEvr2WxOh439FDbB6Yn3bKznAj3MyJohyQ0DR_LGlQ" /* Project Settings > API: Project URL and anon public key ONLY. Never the service_role key. */,
  API_BASE:null /* null = DEMO MODE (browser only, not secure). Set to your backend URL for real use. */
@@ -128,7 +165,7 @@ async function admin(){
  const os=await api.adminOrders();
  return `<h1>Orders</h1>${tabs}<div class="note">Check each GCash payment in your transaction history (amount, reference, time) before confirming. For coin orders, confirm the balance and deduct in game. Deliver through your server integration or delivery queue, then mark delivered.</div>
  <div class="scr"><table><thead><tr><th>Order</th><th>Player / item</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead><tbody>${os.map(o=>`<tr><td>${esc(o.number)}<br><small>${new Date(o.created).toLocaleString()}</small></td><td>${esc(o.username)}<br>${esc(o.productName)}${o.notes?'<br><small>'+esc(o.notes)+'</small>':''}</td><td>${o.method==='coins'?num(o.coins)+' coins':php(o.total)+' GCash<br>Ref: '+esc(o.ref||'none')+'<br><small>Receipt: '+esc(o.receipt||'none')+'</small>'}</td><td>${st(o.status)}</td><td><div class="row" style="margin:0">${o.status==='pending_verification'?`<button class="btn ok" data-s="paid" data-o="${esc(o.number)}">Confirm</button><button class="btn bad" data-s="rejected" data-o="${esc(o.number)}">Reject</button>`:''}${o.status==='paid'?`<button class="btn" data-s="delivered" data-o="${esc(o.number)}">Mark delivered</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="5">No orders yet.</td></tr>'}</tbody></table></div>`}
-function bindAdmin(){const af=$('#af');if(af)af.onsubmit=async e=>{e.preventDefault();try{await api.login($('#au').value,$('#ap').value);adminIn=true;render()}catch(x){$('#e').textContent='Sign-in failed.'}};
+function bindAdmin(){const af=$('#af');if(af)af.onsubmit=async e=>{e.preventDefault();try{await api.login($('#au').value,$('#ap').value);adminIn=true;render()}catch(x){$('#e').textContent='Sign-in failed: '+(x.message||x)}};
  $$('[data-tab]').forEach(b=>b.onclick=()=>{b.dataset.tab==='out'?adminIn=false:tab=b.dataset.tab;render()});
  $$('[data-s]').forEach(b=>b.onclick=async()=>{await api.setStatus(b.dataset.o,b.dataset.s);render()});
  $$('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Delete this product?')){await api.saveProducts((await api.products()).filter(p=>p.id!==b.dataset.del));render()}});
