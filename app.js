@@ -1,9 +1,9 @@
 /* ===== EDIT ME: placeholders ===== */
 const CONFIG={
- serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",discord:"https://discord.gg/YOUR-INVITE",support:"SUPPORT CONTACT (PLACEHOLDER)",
- gcash:{accountName:"ACCOUNT NAME (PLACEHOLDER)",number:"09XX XXX XXXX (PLACEHOLDER)",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
+ serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",discord:"https://discord.gg/vHGj4E9KDZ",support:"neowawww@gmail.com",
+ gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
  refundPolicy:"PLACEHOLDER: write your refund policy here.",
- SUPABASE_URL:"",SUPABASE_ANON_KEY:"" /* Project Settings > API: Project URL and anon public key ONLY. Never the service_role key. */,
+ SUPABASE_URL:"https://axgjlpmunsvwlonbbqdz.supabase.co",SUPABASE_ANON_KEY:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4Z2pscG11bnN2d2xvbmJicWR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjA4NDMsImV4cCI6MjEwNjY5Njg0M30.2cEvr2WxOh439FDbB6Yn3bKznAj3MyJohyQ0DR_LGlQ" /* Project Settings > API: Project URL and anon public key ONLY. Never the service_role key. */,
  API_BASE:null /* null = DEMO MODE (browser only, not secure). Set to your backend URL for real use. */
 };
 const COIN_RATE=2,MIN_COIN_PHP=50;
