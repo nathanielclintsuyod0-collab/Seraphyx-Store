@@ -3,6 +3,7 @@ const CONFIG={
  serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",discord:"https://discord.gg/YOUR-INVITE",support:"SUPPORT CONTACT (PLACEHOLDER)",
  gcash:{accountName:"ACCOUNT NAME (PLACEHOLDER)",number:"09XX XXX XXXX (PLACEHOLDER)",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
  refundPolicy:"PLACEHOLDER: write your refund policy here.",
+ SUPABASE_URL:"",SUPABASE_ANON_KEY:"" /* Project Settings > API: Project URL and anon public key ONLY. Never the service_role key. */,
  API_BASE:null /* null = DEMO MODE (browser only, not secure). Set to your backend URL for real use. */
 };
 const COIN_RATE=2,MIN_COIN_PHP=50;
@@ -24,9 +25,10 @@ const ICONS={coin:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/
 const ic=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||ICONS.rank}</svg>`;
 /* ===== Data layer ===== */
 const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const demo=!CONFIG.API_BASE,J={'Content-Type':'application/json'};
+const sb=(CONFIG.SUPABASE_URL&&CONFIG.SUPABASE_ANON_KEY&&window.supabase)?window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY):null;
+const demo=!sb,J={'Content-Type':'application/json'};
 async function http(p,o={}){const r=await fetch(CONFIG.API_BASE+p,{credentials:'include',...o});if(!r.ok)throw new Error(await r.text()||r.status);return r.json()}
-const api={
+const demoApi={
  products:async()=>demo?LS.get('sx_products',DEFAULTS):http('/products'),
  saveProducts:async p=>demo?LS.set('sx_products',p):http('/admin/products',{method:'PUT',headers:J,body:JSON.stringify(p)}),
  async createOrder(o){if(!demo)return http('/orders',{method:'POST',headers:J,body:JSON.stringify(o)});
@@ -40,6 +42,27 @@ const api={
   const a=LS.get('sx_orders',[]);a.find(o=>o.number===n).status=s;LS.set('sx_orders',a)},
  login:async(u,p)=>demo?true:http('/admin/login',{method:'POST',headers:J,body:JSON.stringify({username:u,password:p})})
 };
+
+/* ===== Supabase layer (used automatically when SUPABASE_URL and SUPABASE_ANON_KEY are set) ===== */
+const ok=r=>{if(r.error)throw new Error(r.error.message);return r.data};
+const fromRow=r=>({id:r.id,cat:r.cat,name:r.name,desc:r.descr,php:Number(r.php),coins:r.coins,days:r.days,tier:r.tier,perks:r.perks||[],details:r.details||'',icon:r.icon,coinshop:r.coinshop});
+const toRow=(p,i)=>({id:p.id,cat:p.cat,name:p.name,descr:p.desc,php:p.php,coins:p.coins,days:p.days,tier:p.tier,perks:p.perks,details:p.details,icon:p.icon||'rank',coinshop:!!p.coinshop,sort:i});
+const sbApi={
+ products:async()=>ok(await sb.from('products').select('*').order('sort')).map(fromRow),
+ async saveProducts(ps){ok(await sb.from('products').upsert(ps.map(toRow)));
+  const ids=ps.map(p=>'"'+p.id+'"').join(',');ok(await sb.from('products').delete().not('id','in','('+ids+')'))},
+ createOrder:async o=>ok(await sb.rpc('create_order',{p_product_id:o.productId,p_username:o.username,p_method:o.method,p_amount:o.total,p_notes:o.notes||''})),
+ async submitPayment(n,u,ref,file){let path=null;
+  if(file){const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5);path=n+'/'+crypto.randomUUID()+'.'+ext;
+   ok(await sb.storage.from('receipts').upload(path,file,{contentType:file.type}))}
+  return ok(await sb.rpc('submit_payment',{p_number:n,p_username:u,p_reference:ref,p_receipt:path}))},
+ lookup:async(n,u)=>ok(await sb.rpc('lookup_order',{p_number:n.trim().toUpperCase(),p_username:u.trim()})),
+ adminOrders:async()=>ok(await sb.rpc('admin_list_orders')),
+ setStatus:async(n,s)=>ok(await sb.rpc('admin_set_status',{p_number:n,p_status:s})),
+ async login(email,pw){ok(await sb.auth.signInWithPassword({email,password:pw}));
+  if(ok(await sb.rpc('is_admin'))!==true){await sb.auth.signOut();throw new Error('Not a staff account')}}
+};
+const api=demo?demoApi:sbApi;
 /* ===== Helpers ===== */
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -85,7 +108,7 @@ async function pay(n,u){const o=await api.lookup(n,u);if(!o)return '<p>Order not
  const body=gc?`<div class="price">Send ${php(o.total)}</div><div class="qr">${g.qrImage?`<img src="${esc(g.qrImage)}" alt="GCash QR code" style="max-width:100%;max-height:100%">`:'GCash QR placeholder (set CONFIG.gcash.qrImage)'}</div><p>Account name: <b>${esc(g.accountName)}</b><br>Number: <b>${esc(g.number)}</b></p><p class="mu">${esc(g.instructions)}</p>
  <div class="note bad"><b>Never share your GCash PIN, password or one-time passcode</b> with anyone, including staff. We only need the reference number.</div>`:
  `<div class="price">${num(o.coins)} coins</div><p class="mu">Staff will check your in-game balance and deduct the coins. Make sure you have enough coins on the server.</p>`;
- const form=o.status==='awaiting_payment'?`<form id="pf"><h2>${gc?'Payment confirmation':'Submit for verification'}</h2>${gc?`<label for="r">GCash reference number</label><input id="r" required minlength="6" maxlength="30" autocomplete="off"><label for="rc">Receipt image (optional, max 5 MB)</label><input id="rc" type="file" accept="image/*">`:''}<div class="row"><button class="btn" type="submit">${gc?'I have paid, submit':'Submit order'}</button></div><p id="e" role="alert" style="color:var(--bad)"></p></form>`:
+ const form=o.status==='awaiting_payment'?`<form id="pf"><h2>${gc?'Payment confirmation':'Submit for verification'}</h2>${gc?`<label for="r">GCash reference number</label><input id="r" required minlength="6" maxlength="30" autocomplete="off"><label for="rc">Receipt image (optional, max 5 MB)</label><input id="rc" type="file" accept="image/jpeg,image/png,image/webp">`:''}<div class="row"><button class="btn" type="submit">${gc?'I have paid, submit':'Submit order'}</button></div><p id="e" role="alert" style="color:var(--bad)"></p></form>`:
  `<div class="note"><b>${LABEL[o.status]}.</b> ${o.status==='pending_verification'?'Staff will verify this manually. Nothing is automatic.':''} Track it on the <a href="#/lookup">orders page</a>.</div>`;
  return head+body+form+'</div></div>'}
 function bindPay(n,u){const f=$('#pf');if(!f)return;f.onsubmit=async e=>{e.preventDefault();const r=$('#r'),file=$('#rc')?.files[0],E=$('#e');
@@ -97,7 +120,7 @@ function bindLookup(){$('#lf').onsubmit=async e=>{e.preventDefault();let o=null;
  const M={awaiting_payment:'No payment details submitted yet.',pending_verification:'Pending verification by staff.',paid:'Payment confirmed. Awaiting delivery.',delivered:'Delivered in game.',rejected:'Could not be verified. Contact support with your order number.'};
  $('#lr').innerHTML=o?`<div class="card" style="margin-top:14px"><div class="in"><h3>${esc(o.number)} ${st(o.status)}</h3><p>${esc(o.productName)} / ${o.method==='coins'?num(o.coins)+' coins':php(o.total)} / ${o.method==='coins'?'in-game coins':'GCash'}<br>Player: ${esc(o.username)}</p><p class="mu">${M[o.status]}</p>${o.status==='awaiting_payment'?`<a class="btn" href="#/pay/${esc(o.number)}/${encodeURIComponent(o.username)}">Continue to payment</a>`:''}</div></div>`:`<div class="note bad" style="margin-top:14px">No order matches that number and username.</div>`}}
 async function admin(){
- if(!adminIn)return `<h1>Staff access</h1>${demoBar()}<form class="card" id="af"><div class="in"><label for="au">Username</label><input id="au" required autocomplete="username"><label for="ap">Password</label><input id="ap" type="password" required autocomplete="current-password"><p class="mu"><small>With a backend, login, sessions and roles are enforced on the server. This form alone protects nothing.</small></p><div class="row"><button class="btn" type="submit">Sign in</button></div><p id="e" role="alert" style="color:var(--bad)"></p></div></form>`;
+ if(!adminIn)return `<h1>Staff access</h1>${demoBar()}<form class="card" id="af"><div class="in"><label for="au">Staff email</label><input id="au" type="email" required autocomplete="username"><label for="ap">Password</label><input id="ap" type="password" required autocomplete="current-password"><p class="mu"><small>With a backend, login, sessions and roles are enforced on the server. This form alone protects nothing.</small></p><div class="row"><button class="btn" type="submit">Sign in</button></div><p id="e" role="alert" style="color:var(--bad)"></p></div></form>`;
  const tabs=`<div class="chips">${['orders','products'].map(t=>`<button class="chip ${tab===t?'on':''}" data-tab="${t}">${t}</button>`).join('')}<button class="chip" data-tab="out">Sign out</button></div>`;
  if(tab==='products'){const ps=await api.products();return `<h1>Products</h1>${tabs}${ps.map(p=>`<div class="card" style="margin-bottom:10px"><div class="in"><b>${esc(p.name)}</b> <span class="mu">${esc(p.cat)} / ${php(p.php)} / ${num(p.coins)} coins</span><div class="row"><button class="btn ghost" data-edit="${esc(p.id)}">Edit</button><button class="btn bad" data-del="${esc(p.id)}">Delete</button></div></div></div>`).join('')}<button class="btn" data-edit="new">Add product</button><div id="pe"></div>`}
  const os=await api.adminOrders();
