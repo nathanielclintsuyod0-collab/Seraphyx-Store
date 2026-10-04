@@ -41,37 +41,46 @@ body {
   color: var(--tx);
   font: 16px/1.65 "Segoe UI", system-ui, sans-serif;
   background:
+    radial-gradient(circle, rgb(216 207 255 / 32%) 0 1px, transparent 1.7px) 0 0 / 64px 64px,
     radial-gradient(ellipse at 50% -14%, rgb(103 69 181 / 28%), transparent 48%),
     radial-gradient(ellipse at 100% 42%, rgb(61 43 115 / 12%), transparent 42%),
     linear-gradient(180deg, #0c0a15 0%, var(--bg) 54%, #08070d 100%);
 }
 
-/* Slow ambient light gives the page depth without distracting from the shop. */
+/* Faint chunk grid adds a block-world texture while leaving the text clear. */
 body::before {
   position: fixed;
   z-index: 0;
   inset: 0;
   pointer-events: none;
   content: "";
-  opacity: .38;
+  opacity: .3;
   background:
-    repeating-linear-gradient(118deg, transparent 0 88px, rgb(210 202 239 / 2.5%) 89px, transparent 90px 176px),
+    linear-gradient(90deg, transparent 47px, rgb(142 217 232 / 7%) 47px 48px) 0 0 / 48px 48px,
+    linear-gradient(0deg, transparent 47px, rgb(142 217 232 / 7%) 47px 48px) 0 0 / 48px 48px,
+    linear-gradient(90deg, transparent 7px, rgb(210 202 239 / 3%) 7px 8px) 16px 16px / 192px 192px,
+    linear-gradient(0deg, transparent 7px, rgb(210 202 239 / 3%) 7px 8px) 16px 16px / 192px 192px,
     radial-gradient(circle at 50% 0%, transparent 0 180px, rgb(162 122 255 / 5%) 181px 182px, transparent 183px 280px);
+  mask-image: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 80%) 62%, transparent 100%);
 }
 
+/* Stepped silhouettes evoke distant voxel hills beneath the eclipse sky. */
 body::after {
   position: fixed;
   z-index: 0;
-  top: 18vh;
-  left: -22vmax;
-  width: 42vmax;
-  aspect-ratio: 1;
+  right: -6vw;
+  bottom: 0;
+  left: -6vw;
+  height: min(34vh, 330px);
   pointer-events: none;
   content: "";
-  border-radius: 50%;
-  background: radial-gradient(circle, rgb(117 76 212 / 13%), transparent 68%);
-  filter: blur(18px);
-  animation: ambient-drift 24s ease-in-out infinite alternate;
+  clip-path: polygon(0 39%, 8% 39%, 8% 25%, 19% 25%, 19% 14%, 31% 14%, 31% 34%, 43% 34%, 43% 9%, 58% 9%, 58% 24%, 70% 24%, 70% 16%, 83% 16%, 83% 35%, 93% 35%, 93% 22%, 100% 22%, 100% 100%, 0 100%);
+  background:
+    linear-gradient(90deg, transparent 47px, rgb(142 217 232 / 8%) 47px 48px) 0 0 / 48px 48px,
+    linear-gradient(0deg, transparent 47px, rgb(142 217 232 / 8%) 47px 48px) 0 0 / 48px 48px,
+    linear-gradient(180deg, rgb(52 49 79 / 44%) 0 18%, rgb(22 28 37 / 60%) 18% 100%);
+  opacity: .48;
+  animation: voxel-horizon 30s ease-in-out infinite alternate;
 }
 
 h1,
@@ -708,9 +717,9 @@ footer {
   font-size: .88rem;
 }
 
-@keyframes ambient-drift {
-  from { transform: translate3d(0, 0, 0) scale(.92); opacity: .7; }
-  to { transform: translate3d(24vw, 8vh, 0) scale(1.12); opacity: 1; }
+@keyframes voxel-horizon {
+  from { transform: translate3d(-1.5vw, 0, 0); opacity: .36; }
+  to { transform: translate3d(1.5vw, -5px, 0); opacity: .52; }
 }
 
 @keyframes eclipse-breathe {
@@ -748,4 +757,3 @@ footer {
     transition-duration: .01ms !important;
   }
 }
-
