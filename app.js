@@ -176,4 +176,3 @@ addEventListener('hashchange',render);render();
  admin (server-side session, CSRF, roles): POST /admin/login; GET /admin/orders; PATCH /admin/orders/:n; PUT /admin/products.
  Server must validate input, rate-limit, store receipts privately, reject duplicate references, keep secrets in env vars,
  verify coin balances server-side, and deliver via RCON/plugin or a staff queue only after status = paid. */
-
