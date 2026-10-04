@@ -43,45 +43,52 @@ body {
   color: var(--tx);
   font: 16px/1.7 'Minecraft', sans-serif;
   background:
-    radial-gradient(circle, rgb(216 207 255 / 32%) 0 1px, transparent 1.7px) 0 0 / 64px 64px,
-    radial-gradient(ellipse at 50% -14%, rgb(103 69 181 / 28%), transparent 48%),
-    radial-gradient(ellipse at 100% 42%, rgb(61 43 115 / 12%), transparent 42%),
-    linear-gradient(180deg, #0c0a15 0%, var(--bg) 54%, #08070d 100%);
+    radial-gradient(ellipse 48rem 25rem at 50% 8%, rgb(133 94 215 / 31%), transparent 72%),
+    radial-gradient(circle at 50% 10%, transparent 0 126px, rgb(219 199 255 / 13%) 128px 130px, transparent 133px 250px),
+    radial-gradient(circle, rgb(235 225 255 / 64%) 0 1px, transparent 1.8px) 0 0 / 72px 72px,
+    radial-gradient(circle, rgb(177 148 240 / 54%) 0 1px, transparent 1.8px) 31px 26px / 112px 112px,
+    radial-gradient(ellipse at 100% 42%, rgb(91 62 157 / 18%), transparent 43%),
+    linear-gradient(180deg, #100c1d 0%, #0c0a17 49%, #090811 100%);
 }
 
-/* Faint chunk grid adds a block-world texture while leaving the text clear. */
+/* Stepped pixel clouds and chunk seams give the sky a voxel texture. */
 body::before {
   position: fixed;
   z-index: 0;
   inset: 0;
   pointer-events: none;
   content: "";
-  opacity: .3;
+  opacity: .42;
   background:
-    linear-gradient(90deg, transparent 47px, rgb(142 217 232 / 7%) 47px 48px) 0 0 / 48px 48px,
-    linear-gradient(0deg, transparent 47px, rgb(142 217 232 / 7%) 47px 48px) 0 0 / 48px 48px,
-    linear-gradient(90deg, transparent 7px, rgb(210 202 239 / 3%) 7px 8px) 16px 16px / 192px 192px,
-    linear-gradient(0deg, transparent 7px, rgb(210 202 239 / 3%) 7px 8px) 16px 16px / 192px 192px,
-    radial-gradient(circle at 50% 0%, transparent 0 180px, rgb(162 122 255 / 5%) 181px 182px, transparent 183px 280px);
-  mask-image: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 80%) 62%, transparent 100%);
+    linear-gradient(rgb(205 183 255 / 12%) 0 0) 9% 24% / 112px 16px no-repeat,
+    linear-gradient(rgb(205 183 255 / 12%) 0 0) 12% calc(24% - 16px) / 64px 16px no-repeat,
+    linear-gradient(rgb(205 183 255 / 12%) 0 0) 15% calc(24% - 32px) / 32px 16px no-repeat,
+    linear-gradient(rgb(205 183 255 / 10%) 0 0) 77% 20% / 144px 16px no-repeat,
+    linear-gradient(rgb(205 183 255 / 10%) 0 0) 81% calc(20% - 16px) / 80px 16px no-repeat,
+    linear-gradient(rgb(205 183 255 / 10%) 0 0) 84% calc(20% - 32px) / 48px 16px no-repeat,
+    linear-gradient(90deg, transparent 47px, rgb(190 164 246 / 8%) 47px 48px) 0 0 / 48px 48px,
+    linear-gradient(0deg, transparent 47px, rgb(190 164 246 / 8%) 47px 48px) 0 0 / 48px 48px,
+    linear-gradient(90deg, transparent 7px, rgb(220 207 255 / 4%) 7px 8px) 16px 16px / 192px 192px,
+    linear-gradient(0deg, transparent 7px, rgb(220 207 255 / 4%) 7px 8px) 16px 16px / 192px 192px;
+  mask-image: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 84%) 72%, transparent 100%);
 }
 
-/* Stepped silhouettes evoke distant voxel hills beneath the eclipse sky. */
+/* A layered, block-cut horizon glows beneath the violet halo. */
 body::after {
   position: fixed;
   z-index: 0;
   right: -6vw;
   bottom: 0;
   left: -6vw;
-  height: min(34vh, 330px);
+  height: min(40vh, 390px);
   pointer-events: none;
   content: "";
-  clip-path: polygon(0 39%, 8% 39%, 8% 25%, 19% 25%, 19% 14%, 31% 14%, 31% 34%, 43% 34%, 43% 9%, 58% 9%, 58% 24%, 70% 24%, 70% 16%, 83% 16%, 83% 35%, 93% 35%, 93% 22%, 100% 22%, 100% 100%, 0 100%);
+  clip-path: polygon(0 38%, 6% 38%, 6% 28%, 13% 28%, 13% 13%, 23% 13%, 23% 22%, 29% 22%, 29% 35%, 39% 35%, 39% 17%, 47% 17%, 47% 8%, 58% 8%, 58% 21%, 65% 21%, 65% 34%, 72% 34%, 72% 20%, 80% 20%, 80% 29%, 85% 29%, 85% 12%, 94% 12%, 94% 38%, 100% 38%, 100% 100%, 0 100%);
   background:
-    linear-gradient(90deg, transparent 47px, rgb(142 217 232 / 8%) 47px 48px) 0 0 / 48px 48px,
-    linear-gradient(0deg, transparent 47px, rgb(142 217 232 / 8%) 47px 48px) 0 0 / 48px 48px,
-    linear-gradient(180deg, rgb(52 49 79 / 44%) 0 18%, rgb(22 28 37 / 60%) 18% 100%);
-  opacity: .48;
+    linear-gradient(90deg, transparent 31px, rgb(210 191 255 / 8%) 31px 32px) 0 0 / 32px 32px,
+    linear-gradient(0deg, transparent 31px, rgb(210 191 255 / 8%) 31px 32px) 0 0 / 32px 32px,
+    linear-gradient(180deg, rgb(222 202 255 / 48%) 0 3px, rgb(142 104 203 / 48%) 3px 7%, rgb(53 42 83 / 70%) 7% 42%, rgb(19 18 33 / 94%) 42% 100%);
+  opacity: .56;
   animation: voxel-horizon 30s ease-in-out infinite alternate;
 }
 
