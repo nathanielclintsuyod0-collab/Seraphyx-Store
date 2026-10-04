@@ -1,49 +1,26 @@
 /* ===== EDIT ME: placeholders ===== */
 const CONFIG={
- serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",discord:"https://discord.gg/vHGj4E9KDZ",support:"neowawww@gmail.com",
-gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
- refundPolicy:"# Seraphyx SMP Store Refund Policy
-
-**Effective date:** October 4, 2026
-
-This policy covers digital purchases from the Seraphyx SMP Store, including coins, monthly ranks, crate keys, and the Battlepass. Store credits have no cash value and cannot be exchanged for cash except where a refund is approved or required by applicable law. Nothing in this policy limits your rights under Philippine consumer protection laws.
-
-## When you can request a refund
-
-Contact Seraphyx support if:
-
-- You were charged more than once or for the wrong amount.
-- Your GCash payment was confirmed, but your purchase was not credited.
-- A purchase was not delivered, is defective, or differs significantly from its store description.
-- A rank or other time-limited purchase becomes unavailable because Seraphyx permanently closes before its advertised access period ends.
-
-We will investigate and, where possible, correct the issue or deliver the missing purchase. If we cannot reasonably resolve it, we will offer an appropriate refund or replacement.
-
-## Purchases that were delivered
-
-A change of mind does not normally qualify for a refund after a correctly described purchase has been delivered. If you entered the wrong Minecraft username, contact us as soon as possible. We will try to help if the purchase has not yet been claimed or used.
-
-Purchases affected by account restrictions or rule violations will be reviewed individually. This does not limit any rights you may have under applicable law.
-
-## How to request a refund
-
-Contact **[support email or Discord ticket link]** and include:
-
-- Your order number
-- Your Minecraft username
-- The purchase date and amount
-- Your GCash payment reference, if applicable
-- A short description of the issue
-
-Never send your GCash MPIN, password, or one-time passcode.
-
-We aim to review requests within **5 business days**. Approved refunds will normally be sent in Philippine pesos to the original payment method within **10 business days**, though GCash or another payment provider may take additional time. If the original method cannot receive the refund, we will contact you to agree on another suitable method.
-
-Please contact us promptly when something goes wrong so we can locate the order and help.",
- ADMIN_USERNAME:"KnownAsNeo",ADMIN_EMAIL:"knownasneo@atbp.fun" /* behind-the-scenes login email for the staff account; change to one you control if Supabase rejects it */,
- SUPABASE_URL:"https://axgjlpmunsvwlonbbqdz.supabase.co",SUPABASE_ANON_KEY:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4Z2pscG11bnN2d2xvbmJicWR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjA4NDMsImV4cCI6MjEwNjY5Njg0M30.2cEvr2WxOh439FDbB6Yn3bKznAj3MyJohyQ0DR_LGlQ" /* Project Settings > API: Project URL and anon public key ONLY. Never the service_role key. */,
- API_BASE:null /* null = DEMO MODE (browser only, not secure). Set to your backend URL for real use. */
+ serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",
+ discord:"https://discord.gg/vHGj4E9KDZ",support:"neowawww@gmail.com",
+ gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
+ ADMIN_USERNAME:"KnownAsNeo",
+ ADMIN_EMAIL:"knownasneo@atbp.fun",
+ SUPABASE_URL:"https://axgjlpmunsvwlonbbqdz.supabase.co",
+ SUPABASE_ANON_KEY:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4Z2pscG11bnN2d2xvbmJicWR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjA4NDMsImV4cCI6MjEwNjY5Njg0M30.2cEvr2WxOh439FDbB6Yn3bKznAj3MyJohyQ0DR_LGlQ",
+ API_BASE:null
 };
+const REFUND={title:"Seraphyx SMP Store Refund Policy",effective:"October 4, 2026",
+ intro:["This policy covers digital purchases from the Seraphyx SMP Store, including coins, monthly ranks, crate keys, and the Battlepass. Store credits have no cash value and cannot be exchanged for cash except where a refund is approved or required by applicable law. Nothing in this policy limits your rights under Philippine consumer protection laws."],
+ sections:[
+ {h:"When you can request a refund",p:["Contact Seraphyx support if:"],ul:["You were charged more than once or for the wrong amount.","Your GCash payment was confirmed, but your purchase was not credited.","A purchase was not delivered, is defective, or differs significantly from its store description.","A rank or other time-limited purchase becomes unavailable because Seraphyx permanently closes before its advertised access period ends."],after:["We will investigate and, where possible, correct the issue or deliver the missing purchase. If we cannot reasonably resolve it, we will offer an appropriate refund or replacement."]},
+ {h:"Purchases that were delivered",p:["A change of mind does not normally qualify for a refund after a correctly described purchase has been delivered. If you entered the wrong Minecraft username, contact us as soon as possible. We will try to help if the purchase has not yet been claimed or used.","Purchases affected by account restrictions or rule violations will be reviewed individually. This does not limit any rights you may have under applicable law."]},
+ {h:"How to request a refund",p:["Contact {contact} and include:"],ul:["Your order number","Your Minecraft username","The purchase date and amount","Your GCash payment reference, if applicable","A short description of the issue"],warn:"Never send your GCash MPIN, password, or one-time passcode.",after:["We aim to review requests within 5 business days. Approved refunds will normally be sent in Philippine pesos to the original payment method within 10 business days, though GCash or another payment provider may take additional time. If the original method cannot receive the refund, we will contact you to agree on another suitable method.","Please contact us promptly when something goes wrong so we can locate the order and help."]}
+ ]};
+function refund(){const sup=/@/.test(CONFIG.support)?`<a href="mailto:${esc(CONFIG.support)}">${esc(CONFIG.support)}</a>`:esc(CONFIG.support);
+ const contact=`${sup} or our <a href="${esc(CONFIG.discord)}" target="_blank" rel="noopener">Discord</a>`;
+ const P=a=>(a||[]).map(t=>`<p>${esc(t).replace('{contact}',contact)}</p>`).join('');
+ return `<div class="eyebrow">Policy</div><h1>Refund policy</h1><div class="card"><div class="in"><h2 style="margin-top:0">${esc(REFUND.title)}</h2><p class="mu">Effective date: ${esc(REFUND.effective)}</p>${P(REFUND.intro)}
+ ${REFUND.sections.map(x=>`<h3 class="rule sec">${esc(x.h)}</h3>${P(x.p)}${x.ul?`<ul>${x.ul.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>`:''}${x.warn?`<div class="note bad"><b>${esc(x.warn)}</b></div>`:''}${P(x.after)}`).join('')}</div></div>`}
 const COIN_RATE=2,MIN_COIN_PHP=50;
 const P=(id,cat,name,desc,php,extra={})=>({id,cat,name,desc,php,coins:php*COIN_RATE,days:0,tier:0,perks:[],details:"",...extra});
 const DEFAULTS=[
@@ -136,7 +113,7 @@ async function checkout(id){const p=(await api.products()).find(x=>x.id===id);if
  <label class="opt"><input type="radio" name="m" value="gcash" checked><span><b>GCash</b><br><small class="mu">Send money, then submit your reference number. Staff verify manually.</small></span></label>
  ${p.coinshop?'':`<label class="opt"><input type="radio" name="m" value="coins"><span><b>In-game coins</b> (${num(p.coins)} coins)<br><small class="mu">Staff confirm your balance and deduct coins in game. Requires enough coins.</small></span></label>`}</fieldset>
  <label for="n">Notes for staff (optional)</label><textarea id="n" rows="2" maxlength="200"></textarea>
- <div class="row"><button class="btn" type="submit">Place order</button></div><p id="e" role="alert" style="color:var(--bad)"></p></div></form></div>`}
+ <p class="mu"><small>Please read the <a href="#/refund">refund policy</a> before ordering.</small></p><div class="row"><button class="btn" type="submit">Place order</button></div><p id="e" role="alert" style="color:var(--bad)"></p></div></form></div>`}
 function bindCheckout(p){const a=$('#amt');if(a)a.oninput=()=>$('#cc').textContent='You will receive '+num((+a.value||0)*COIN_RATE)+' coins.';
  $('#f').onsubmit=async e=>{e.preventDefault();const u=$('#u').value.trim(),m=document.querySelector('input[name=m]:checked').value,E=$('#e');
   if(!/^[A-Za-z0-9_]{3,16}$/.test(u))return E.textContent='Enter a valid Minecraft username.';
@@ -179,14 +156,14 @@ function bindAdmin(){const af=$('#af');if(af)af.onsubmit=async e=>{e.preventDefa
    const i=ps.findIndex(x=>x.id===p.id);i<0?ps.push(n):ps[i]=n;await api.saveProducts(ps);render()}})}
 /* ===== Router ===== */
 async function render(){const [r,a,b]=(location.hash.slice(2)||'').split('/');let h='';
- try{h=r==='store'?await store():r==='checkout'?await checkout(a):r==='pay'?await pay(a,decodeURIComponent(b||'')):r==='lookup'?await lookup():r==='admin'?await admin():await home()}catch(e){h=`<div class="note bad">Something went wrong: ${esc(e.message)}</div>`}
+ try{h=r==='store'?await store():r==='checkout'?await checkout(a):r==='pay'?await pay(a,decodeURIComponent(b||'')):r==='lookup'?await lookup():r==='refund'?refund():r==='admin'?await admin():await home()}catch(e){h=`<div class="note bad">Something went wrong: ${esc(e.message)}</div>`}
  $('#app').innerHTML=h;scrollTo(0,0);
  $$('nav a.l').forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#/'+({checkout:'store',pay:'lookup'}[r]||r||'')));
  $$('[data-cat]').forEach(x=>x.onclick=()=>{cat=x.dataset.cat;render()});
  const cp=$('#cp');if(cp)cp.onclick=()=>navigator.clipboard&&navigator.clipboard.writeText(CONFIG.serverIP+":"+CONFIG.serverPort).then(()=>cp.textContent='Copied');
  if(r==='checkout'&&$('#f'))bindCheckout((await api.products()).find(x=>x.id===a));
  if(r==='pay')bindPay(a,decodeURIComponent(b||''));if(r==='lookup')bindLookup();if(r==='admin')bindAdmin()}
-$('#foot').innerHTML=`<p>Support: ${esc(CONFIG.support)} / <a href="${esc(CONFIG.discord)}" target="_blank" rel="noopener">Discord</a></p><p>₱1.00 = 2 coins. Minimum coin purchase ₱50.00. Store credits have no cash value.</p><details style="max-width:600px;margin:auto"><summary>Refund policy</summary><p>${esc(CONFIG.refundPolicy)}</p></details><p>Payments are verified manually by staff. Not affiliated with Mojang or Microsoft.</p>`;
+$('#foot').innerHTML=`<p>Support: ${esc(CONFIG.support)} / <a href="${esc(CONFIG.discord)}" target="_blank" rel="noopener">Discord</a></p><p>₱1.00 = 2 coins. Minimum coin purchase ₱50.00. Store credits have no cash value.</p><p><a href="#/refund">Refund policy</a></p><p>Payments are verified manually by staff. Not affiliated with Mojang or Microsoft.</p>`;
 addEventListener('hashchange',render);render();
 /* BACKEND CONTRACT (API_BASE): GET /products; POST /orders; POST /orders/payment (multipart); POST /orders/lookup;
  admin (server-side session, CSRF, roles): POST /admin/login; GET /admin/orders; PATCH /admin/orders/:n; PUT /admin/products.
