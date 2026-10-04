@@ -2,7 +2,7 @@
 const CONFIG={
  serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",discord:"https://discord.gg/vHGj4E9KDZ",support:"neowawww@gmail.com",
  gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
- refundPolicy:"PLACEHOLDER: write your refund policy here.",
+ refundPolicy:"PLACEHOLDER: NO REFUNDS!.",
  SUPABASE_URL:"https://axgjlpmunsvwlonbbqdz.supabase.co",SUPABASE_ANON_KEY:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4Z2pscG11bnN2d2xvbmJicWR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjA4NDMsImV4cCI6MjEwNjY5Njg0M30.2cEvr2WxOh439FDbB6Yn3bKznAj3MyJohyQ0DR_LGlQ" /* Project Settings > API: Project URL and anon public key ONLY. Never the service_role key. */,
  API_BASE:null /* null = DEMO MODE (browser only, not secure). Set to your backend URL for real use. */
 };
@@ -59,7 +59,8 @@ const sbApi={
  lookup:async(n,u)=>ok(await sb.rpc('lookup_order',{p_number:n.trim().toUpperCase(),p_username:u.trim()})),
  adminOrders:async()=>ok(await sb.rpc('admin_list_orders')),
  setStatus:async(n,s)=>ok(await sb.rpc('admin_set_status',{p_number:n,p_status:s})),
- async login(email,pw){ok(await sb.auth.signInWithPassword({email,password:pw}));
+ async login(user,pw){if(user.trim().toLowerCase()!==CONFIG.ADMIN_USERNAME.toLowerCase())throw new Error('Wrong username or password');
+  ok(await sb.auth.signInWithPassword({email:CONFIG.ADMIN_EMAIL,password:pw}));
   if(ok(await sb.rpc('is_admin'))!==true){await sb.auth.signOut();throw new Error('Not a staff account')}}
 };
 const api=demo?demoApi:sbApi;
@@ -120,7 +121,7 @@ function bindLookup(){$('#lf').onsubmit=async e=>{e.preventDefault();let o=null;
  const M={awaiting_payment:'No payment details submitted yet.',pending_verification:'Pending verification by staff.',paid:'Payment confirmed. Awaiting delivery.',delivered:'Delivered in game.',rejected:'Could not be verified. Contact support with your order number.'};
  $('#lr').innerHTML=o?`<div class="card" style="margin-top:14px"><div class="in"><h3>${esc(o.number)} ${st(o.status)}</h3><p>${esc(o.productName)} / ${o.method==='coins'?num(o.coins)+' coins':php(o.total)} / ${o.method==='coins'?'in-game coins':'GCash'}<br>Player: ${esc(o.username)}</p><p class="mu">${M[o.status]}</p>${o.status==='awaiting_payment'?`<a class="btn" href="#/pay/${esc(o.number)}/${encodeURIComponent(o.username)}">Continue to payment</a>`:''}</div></div>`:`<div class="note bad" style="margin-top:14px">No order matches that number and username.</div>`}}
 async function admin(){
- if(!adminIn)return `<h1>Staff access</h1>${demoBar()}<form class="card" id="af"><div class="in"><label for="au">Staff email</label><input id="au" type="email" required autocomplete="username"><label for="ap">Password</label><input id="ap" type="password" required autocomplete="current-password"><p class="mu"><small>With a backend, login, sessions and roles are enforced on the server. This form alone protects nothing.</small></p><div class="row"><button class="btn" type="submit">Sign in</button></div><p id="e" role="alert" style="color:var(--bad)"></p></div></form>`;
+ if(!adminIn)return `<h1>Staff access</h1>${demoBar()}<form class="card" id="af"><div class="in"><label for="au">Username</label><input id="au" required autocomplete="username" autocapitalize="off"><label for="ap">Password</label><input id="ap" type="password" required autocomplete="current-password"><p class="mu"><small>With a backend, login, sessions and roles are enforced on the server. This form alone protects nothing.</small></p><div class="row"><button class="btn" type="submit">Sign in</button></div><p id="e" role="alert" style="color:var(--bad)"></p></div></form>`;
  const tabs=`<div class="chips">${['orders','products'].map(t=>`<button class="chip ${tab===t?'on':''}" data-tab="${t}">${t}</button>`).join('')}<button class="chip" data-tab="out">Sign out</button></div>`;
  if(tab==='products'){const ps=await api.products();return `<h1>Products</h1>${tabs}${ps.map(p=>`<div class="card" style="margin-bottom:10px"><div class="in"><b>${esc(p.name)}</b> <span class="mu">${esc(p.cat)} / ${php(p.php)} / ${num(p.coins)} coins</span><div class="row"><button class="btn ghost" data-edit="${esc(p.id)}">Edit</button><button class="btn bad" data-del="${esc(p.id)}">Delete</button></div></div></div>`).join('')}<button class="btn" data-edit="new">Add product</button><div id="pe"></div>`}
  const os=await api.adminOrders();
