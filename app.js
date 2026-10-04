@@ -3,6 +3,7 @@ const CONFIG={
  serverIP:"seraphyx.atbp.fun",serverPort:"20021",version:"1.21.x",
  discord:"https://discord.gg/vHGj4E9KDZ",support:"neowawww@gmail.com",
  gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"qr-code.png",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
+ // Change this value to choose your staff username.
  ADMIN_USERNAME:"KnownAsNeo",
  ADMIN_EMAIL:"knownasneo@atbp.fun",
  SUPABASE_URL:"https://axgjlpmunsvwlonbbqdz.supabase.co",
@@ -55,7 +56,9 @@ const demoApi={
  adminOrders:async()=>demo?LS.get('sx_orders',[]).slice().reverse():http('/admin/orders'),
  async setStatus(n,s){if(!demo)return http('/admin/orders/'+encodeURIComponent(n),{method:'PATCH',headers:J,body:JSON.stringify({status:s})});
   const a=LS.get('sx_orders',[]);a.find(o=>o.number===n).status=s;LS.set('sx_orders',a)},
- login:async(u,p)=>demo?true:http('/admin/login',{method:'POST',headers:J,body:JSON.stringify({username:u,password:p})})
+ requestAdminCode:async u=>{if(u.trim().toLowerCase()!==CONFIG.ADMIN_USERNAME.toLowerCase())throw new Error('Username not recognized')},
+ verifyAdminCode:async()=>{},
+ logout:async()=>{}
 };
 
 /* ===== Supabase layer (used automatically when SUPABASE_URL and SUPABASE_ANON_KEY are set) ===== */
@@ -74,9 +77,11 @@ const sbApi={
  lookup:async(n,u)=>ok(await sb.rpc('lookup_order',{p_number:n.trim().toUpperCase(),p_username:u.trim()})),
  adminOrders:async()=>ok(await sb.rpc('admin_list_orders')),
  setStatus:async(n,s)=>ok(await sb.rpc('admin_set_status',{p_number:n,p_status:s})),
- async login(user,pw){if(user.trim().toLowerCase()!==CONFIG.ADMIN_USERNAME.toLowerCase())throw new Error('Wrong username or password');
-  ok(await sb.auth.signInWithPassword({email:CONFIG.ADMIN_EMAIL,password:pw}));
-  if(ok(await sb.rpc('is_admin'))!==true){await sb.auth.signOut();throw new Error('Not a staff account')}}
+ async requestAdminCode(user){if(user.trim().toLowerCase()!==CONFIG.ADMIN_USERNAME.toLowerCase())throw new Error('Username not recognized');
+  ok(await sb.auth.signInWithOtp({email:CONFIG.ADMIN_EMAIL,options:{shouldCreateUser:false}}))},
+ async verifyAdminCode(token){ok(await sb.auth.verifyOtp({email:CONFIG.ADMIN_EMAIL,token,type:'email'}));
+  if(ok(await sb.rpc('is_admin'))!==true){await sb.auth.signOut();throw new Error('This account does not have staff access')}},
+ async logout(){ok(await sb.auth.signOut())}
 };
 const api=demo?demoApi:sbApi;
 /* ===== Helpers ===== */
@@ -89,7 +94,7 @@ const st=s=>`<span class="st ${s}">${LABEL[s]||s}</span>`;
 const tier=n=>n?`<div class="tier" role="img" aria-label="Tier ${n} of 5">${[1,2,3,4,5].map(i=>`<i class="${i<=n?'f':''}" style="height:${i*4+2}px"></i>`).join('')}</div>`:'';
 const CUR=`<div class="note cur" role="note"><b>Currency:</b> ₱1.00 = 2 in-game coins. Coins are bought through the Coinshop (minimum ₱50.00). Store credits have no cash value.</div>`;
 const demoBar=()=>demo?`<div class="note bad" role="note"><b>Demo mode.</b> Data stays in this browser only. Nothing is secure, shared with staff, or delivered. Connect a backend (CONFIG.API_BASE) before taking real orders.</div>`:'';
-let adminIn=false,tab='orders',cat='All';
+let adminIn=false,adminCodeSent=false,adminUsernameInput='',tab='orders',cat='All';
 function card(p){return `<article class="card"><div class="in"><span class="tag">${ic(p.icon)} ${esc(p.cat)}${p.days?' / '+p.days+' days':''}</span><h3>${esc(p.name)}</h3>${tier(p.tier)}<p class="mu">${esc(p.desc)}</p>
  ${p.coinshop?`<div class="price">₱1.00 = 2 coins</div><div class="coins">Minimum ${php(MIN_COIN_PHP)}</div>`:`<div class="price">${php(p.php)}</div><div class="coins">${num(p.coins)} coins</div>`}
  ${p.perks.length?`<ul class="perks">${p.perks.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:`<div class="pend">Perks: to be added by staff.</div>`}
@@ -136,14 +141,16 @@ function bindLookup(){$('#lf').onsubmit=async e=>{e.preventDefault();let o=null;
  const M={awaiting_payment:'No payment details submitted yet.',pending_verification:'Pending verification by staff.',paid:'Payment confirmed. Awaiting delivery.',delivered:'Delivered in game.',rejected:'Could not be verified. Contact support with your order number.'};
  $('#lr').innerHTML=o?`<div class="card" style="margin-top:14px"><div class="in"><h3>${esc(o.number)} ${st(o.status)}</h3><p>${esc(o.productName)} / ${o.method==='coins'?num(o.coins)+' coins':php(o.total)} / ${o.method==='coins'?'in-game coins':'GCash'}<br>Player: ${esc(o.username)}</p><p class="mu">${M[o.status]}</p>${o.status==='awaiting_payment'?`<a class="btn" href="#/pay/${esc(o.number)}/${encodeURIComponent(o.username)}">Continue to payment</a>`:''}</div></div>`:`<div class="note bad" style="margin-top:14px">No order matches that number and username.</div>`}}
 async function admin(){
- if(!adminIn)return `<h1>Staff access</h1>${demoBar()}<form class="card" id="af"><div class="in"><label for="au">Username</label><input id="au" required autocomplete="username" autocapitalize="off"><label for="ap">Password</label><input id="ap" type="password" required autocomplete="current-password"><p class="mu"><small>With a backend, login, sessions and roles are enforced on the server. This form alone protects nothing.</small></p><div class="row"><button class="btn" type="submit">Sign in</button></div><p id="e" role="alert" style="color:var(--bad)"></p></div></form>`;
+ if(!adminIn)return `<h1>Staff access</h1>${demoBar()}<form class="card" id="af"><div class="in">${adminCodeSent?`<p class="mu">Enter the one-time code sent to the staff email.</p><label for="ac">Email code</label><input id="ac" required inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{6,8}" aria-describedby="e">`:`<label for="au">Staff username</label><input id="au" required autocomplete="username" autocapitalize="off" value="${esc(adminUsernameInput)}"><p class="mu"><small>For live sign-in, Supabase sends a one-time code to the configured staff email. Change ADMIN_USERNAME in CONFIG to set your username.</small></p>`}<div class="row"><button class="btn" type="submit">${adminCodeSent?'Verify code':'Continue'}</button>${adminCodeSent?'<button class="btn ghost" type="button" id="back-login">Back</button>':''}</div><p id="e" role="alert" style="color:var(--bad)"></p></div></form>`;
  const tabs=`<div class="chips">${['orders','products'].map(t=>`<button class="chip ${tab===t?'on':''}" data-tab="${t}">${t}</button>`).join('')}<button class="chip" data-tab="out">Sign out</button></div>`;
  if(tab==='products'){const ps=await api.products();return `<h1>Products</h1>${tabs}${ps.map(p=>`<div class="card" style="margin-bottom:10px"><div class="in"><b>${esc(p.name)}</b> <span class="mu">${esc(p.cat)} / ${php(p.php)} / ${num(p.coins)} coins</span><div class="row"><button class="btn ghost" data-edit="${esc(p.id)}">Edit</button><button class="btn bad" data-del="${esc(p.id)}">Delete</button></div></div></div>`).join('')}<button class="btn" data-edit="new">Add product</button><div id="pe"></div>`}
  const os=await api.adminOrders();
  return `<h1>Orders</h1>${tabs}<div class="note">Check each GCash payment in your transaction history (amount, reference, time) before confirming. For coin orders, confirm the balance and deduct in game. Deliver through your server integration or delivery queue, then mark delivered.</div>
  <div class="scr"><table><thead><tr><th>Order</th><th>Player / item</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead><tbody>${os.map(o=>`<tr><td>${esc(o.number)}<br><small>${new Date(o.created).toLocaleString()}</small></td><td>${esc(o.username)}<br>${esc(o.productName)}${o.notes?'<br><small>'+esc(o.notes)+'</small>':''}</td><td>${o.method==='coins'?num(o.coins)+' coins':php(o.total)+' GCash<br>Ref: '+esc(o.ref||'none')+'<br><small>Receipt: '+esc(o.receipt||'none')+'</small>'}</td><td>${st(o.status)}</td><td><div class="row" style="margin:0">${o.status==='pending_verification'?`<button class="btn ok" data-s="paid" data-o="${esc(o.number)}">Confirm</button><button class="btn bad" data-s="rejected" data-o="${esc(o.number)}">Reject</button>`:''}${o.status==='paid'?`<button class="btn" data-s="delivered" data-o="${esc(o.number)}">Mark delivered</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="5">No orders yet.</td></tr>'}</tbody></table></div>`}
-function bindAdmin(){const af=$('#af');if(af)af.onsubmit=async e=>{e.preventDefault();try{await api.login($('#au').value,$('#ap').value);adminIn=true;render()}catch(x){$('#e').textContent='Sign-in failed: '+(x.message||x)}};
- $$('[data-tab]').forEach(b=>b.onclick=()=>{b.dataset.tab==='out'?adminIn=false:tab=b.dataset.tab;render()});
+function bindAdmin(){const af=$('#af');if(af)af.onsubmit=async e=>{e.preventDefault();const error=$('#e');try{if(!adminCodeSent){adminUsernameInput=$('#au').value.trim();await api.requestAdminCode(adminUsernameInput);if(demo){adminIn=true;render();return}adminCodeSent=true;render();return}
+  await api.verifyAdminCode($('#ac').value.trim());adminIn=true;adminCodeSent=false;adminUsernameInput='';render()}catch(x){if(error)error.textContent='Sign-in failed: '+(x.message||x)}};
+ const back=$('#back-login');if(back)back.onclick=()=>{adminCodeSent=false;render()};
+ $$('[data-tab]').forEach(b=>b.onclick=async()=>{if(b.dataset.tab==='out'){try{await api.logout()}catch(e){}adminIn=false;adminCodeSent=false;adminUsernameInput=''}else tab=b.dataset.tab;render()});
  $$('[data-s]').forEach(b=>b.onclick=async()=>{await api.setStatus(b.dataset.o,b.dataset.s);render()});
  $$('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Delete this product?')){await api.saveProducts((await api.products()).filter(p=>p.id!==b.dataset.del));render()}});
  $$('[data-edit]').forEach(b=>b.onclick=async()=>{const ps=await api.products(),p=ps.find(x=>x.id===b.dataset.edit)||P('p'+Date.now(),'Other','','',0,{icon:'rank'});
@@ -169,3 +176,4 @@ addEventListener('hashchange',render);render();
  admin (server-side session, CSRF, roles): POST /admin/login; GET /admin/orders; PATCH /admin/orders/:n; PUT /admin/products.
  Server must validate input, rate-limit, store receipts privately, reject duplicate references, keep secrets in env vars,
  verify coin balances server-side, and deliver via RCON/plugin or a staff queue only after status = paid. */
+
