@@ -5,7 +5,7 @@ const CONFIG={
  gcash:{accountName:"ME****E S.",number:"09500571215",qrImage:"qr-code.png",instructions:"Open GCash, choose Send Money, and send the exact amount shown. Include your order number in the message if possible."},
  // Change this value to choose your staff username.
  ADMIN_USERNAME:"KnownAsNeo",
- ADMIN_EMAIL:"knownasneo@atbp.fun",
+ ADMIN_EMAIL:"nathanielclintsuyod0@gmail.com",
  SUPABASE_URL:"https://axgjlpmunsvwlonbbqdz.supabase.co",
  SUPABASE_ANON_KEY:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4Z2pscG11bnN2d2xvbmJicWR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjA4NDMsImV4cCI6MjEwNjY5Njg0M30.2cEvr2WxOh439FDbB6Yn3bKznAj3MyJohyQ0DR_LGlQ",
  API_BASE:null
